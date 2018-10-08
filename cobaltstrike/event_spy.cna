@@ -1,0 +1,4 @@
+# event spy script - https://www.cobaltstrike.com/aggressor-script/events.html
+on * {
+	println("[ $+ $1 $+ ]: " . subarray(@_, 1));
+}

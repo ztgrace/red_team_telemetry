@@ -1,0 +1,19 @@
+filebeat.prospectors:
+- input_type: log
+  paths: ["/var/log/cobaltstrike/teamserver-*.json"]
+  json.message_key: event
+  json.keys_under_root: true
+  json.add_error_key: true
+
+output.elasticsearch:
+  hosts: ["127.0.0.1:9200"]
+  template.fields: fields.yml
+  index: "teamserver-%{[beat.version]}-%{+yyyy.MM.dd}"
+
+setup.template:
+  name: "teamserver"
+  pattern: "teamserver-*"
+  setup.dashboards.index: "teamserver-*" 
+  fields: fields.yml
+  path: teamserver.template.json
+  overwrite: true

@@ -1,0 +1,174 @@
+{
+  "index_patterns": [
+    "filebeat-6.2.4-*"
+  ],
+  "mappings": {
+    "doc": {
+      "_meta": {
+        "version": "6.2.4"
+      },
+      "date_detection": false,
+      "dynamic_templates": [
+        {
+          "strings_as_keyword": {
+            "mapping": {
+              "ignore_above": 1024,
+              "type": "keyword"
+            },
+            "match_mapping_type": "string"
+          }
+        }
+      ],
+      "properties": {
+        "alive": {
+          "type": "boolean"
+        },
+        "barch": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "beacon_id": {
+          "type": "long"
+        },
+        "command": {
+          "norms": false,
+          "type": "text"
+        },
+        "computer": {
+          "norms": false,
+          "type": "text"
+        },
+        "data": {
+          "norms": false,
+          "type": "text"
+        },
+        "event": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "external": {
+          "norms": false,
+          "type": "text"
+        },
+        "file_served": {
+          "norms": false,
+          "type": "text"
+        },
+        "id": {
+          "type": "long"
+        },
+        "internal": {
+          "norms": false,
+          "type": "text"
+        },
+        "ip_address": {
+          "type": "ip"
+        },
+        "is64": {
+          "type": "long"
+        },
+        "last": {
+          "type": "long"
+        },
+        "lastf": {
+          "norms": false,
+          "type": "text"
+        },
+        "message": {
+          "norms": false,
+          "type": "text"
+        },
+        "method": {
+          "norms": false,
+          "type": "text"
+        },
+        "note": {
+          "norms": false,
+          "type": "text"
+        },
+        "operator": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "os": {
+          "norms": false,
+          "type": "text"
+        },
+        "pbid": {
+          "norms": false,
+          "type": "text"
+        },
+        "phase": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "pid": {
+          "type": "long"
+        },
+        "port": {
+          "type": "long"
+        },
+        "response": {
+          "norms": false,
+          "type": "text"
+        },
+        "response_size": {
+          "type": "long"
+        },
+        "role": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "session": {
+          "norms": false,
+          "type": "text"
+        },
+        "tactic": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "tactic_name": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "timestamp": {
+          "type": "date"
+        },
+        "type": {
+          "norms": false,
+          "type": "text"
+        },
+        "uri": {
+          "norms": false,
+          "type": "text"
+        },
+        "user": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "useragent": {
+          "norms": false,
+          "type": "text"
+        },
+        "ver": {
+          "type": "float"
+        },
+        "when": {
+          "type": "date"
+        }
+      }
+    }
+  },
+  "order": 1,
+  "settings": {
+    "index": {
+      "mapping": {
+        "total_fields": {
+          "limit": 10000
+        }
+      },
+      "number_of_routing_shards": 30,
+      "refresh_interval": "5s"
+    }
+  }
+}

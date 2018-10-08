@@ -1,0 +1,66 @@
+packetbeat.interfaces.device: ens33
+packetbeat.flows:
+  enabled: false
+  timeout: 30s
+  period: 10s
+packetbeat.protocols:
+- type: dns
+  enabled: true
+  ports: [53]
+  include_authorities: true
+  include_additionals: true
+  send_request:  true
+  send_response: true
+  transaction_timeout: 10s
+- type: http
+  enabled: true
+  ports: [80]
+  send_headers: true
+  send_all_headers: true
+  include_body_for: ["text/plain", "text/xml", "audio/mp4"]
+  send_request: true
+  send_response: true
+- type: icmp
+  enabled: false
+- type: amqp
+  enabled: false
+  ports: [5672]
+- type: cassandra
+  enabled: false
+  ports: [9042]
+- type: memcache
+  enabled: false
+  ports: [11211]
+- type: mysql
+  enabled: false
+  ports: [3306]
+- type: pgsql
+  enabled: false
+  ports: [5432]
+- type: redis
+  enabled: false
+  ports: [6379]
+- type: thrift
+  enabled: false
+  ports: [9090]
+- type: mongodb
+  enabled: false
+  ports: [27017]
+- type: nfs
+  enabled: false
+  ports: [2049]
+- type: tls
+  enabled: true
+  ports: [443]
+  send_certificates: true
+output.elasticsearch:
+  hosts: ["127.0.0.1:9200"]
+  pipeline: geoip-info
+setup.template.settings:
+    number_of_shards: 3
+    codec: best_compression
+    _source.enabled: true
+setup.kibana:
+  host: "127.0.0.1:5601"
+logging.to_files: true
+logging.files:

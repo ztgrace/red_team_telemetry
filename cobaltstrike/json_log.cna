@@ -1,0 +1,430 @@
+# json_log.cna by Zach Grace (@ztgrace)
+# An aggressor script to create a structured json log of beacon events
+# Be sure to heed the warnings in the README for proper operation
+
+
+# Config
+$logdir = "/var/log/cobaltstrike/";
+$notlogged = "notlogged.log";
+
+# The role is pulled from the nick, logbot_working role = working
+$role = split('_', data_query("metadata")['nick'])[1];
+
+# enable/disable logging of event types
+$log_beacons = false;
+$log_beacon_input = true;
+$log_beacon_tasked = true;
+$log_beacon_checkin = true;
+$log_beacon_error = true;
+$log_beacon_output = true;
+$log_archives = true;
+$log_web_hit = true;
+$log_weblog = false;
+$log_beaconlog = false;
+$log_beacon_indicator = true;
+$log_event_beacon_initial = true;
+$log_beacon_initial = true;
+
+################################################################################################
+# Generated data from the mitre_cs.py script
+# Eventually this should probably be a logstash plugin
+
+%attack = %(
+T1163 => %(phase => 'persistence', name => 'Rc.common'),
+T1027 => %(phase => 'defense-evasion', name => 'Obfuscated Files or Information'),
+T1189 => %(phase => 'initial-access', name => 'Drive-by Compromise'),
+T1074 => %(phase => 'collection', name => 'Data Staged'),
+T1105 => %(phase => 'command-and-control', name => 'Remote File Copy'),
+T1134 => %(phase => 'defense-evasion', name => 'Access Token Manipulation'),
+T1069 => %(phase => 'discovery', name => 'Permission Groups Discovery'),
+T1215 => %(phase => 'persistence', name => 'Kernel Modules and Extensions'),
+T1186 => %(phase => 'defense-evasion', name => 'Process Doppelgänging'),
+T1089 => %(phase => 'defense-evasion', name => 'Disabling Security Tools'),
+T1014 => %(phase => 'defense-evasion', name => 'Rootkit'),
+T1092 => %(phase => 'command-and-control', name => 'Communication Through Removable Media'),
+T1122 => %(phase => 'defense-evasion', name => 'Component Object Model Hijacking'),
+T1150 => %(phase => 'defense-evasion', name => 'Plist Modification'),
+T1143 => %(phase => 'defense-evasion', name => 'Hidden Window'),
+T1140 => %(phase => 'defense-evasion', name => 'Deobfuscate/Decode Files or Information'),
+T1198 => %(phase => 'defense-evasion', name => 'SIP and Trust Provider Hijacking'),
+T1068 => %(phase => 'privilege-escalation', name => 'Exploitation for Privilege Escalation'),
+T1139 => %(phase => 'credential-access', name => 'Bash History'),
+T1117 => %(phase => 'defense-evasion', name => 'Regsvr32'),
+T1094 => %(phase => 'command-and-control', name => 'Custom Command and Control Protocol'),
+T1146 => %(phase => 'defense-evasion', name => 'Clear Command History'),
+T1173 => %(phase => 'execution', name => 'Dynamic Data Exchange'),
+T1167 => %(phase => 'credential-access', name => 'Securityd Memory'),
+T1084 => %(phase => 'persistence', name => 'Windows Management Instrumentation Event Subscription'),
+T1002 => %(phase => 'exfiltration', name => 'Data Compressed'),
+T1049 => %(phase => 'discovery', name => 'System Network Connections Discovery'),
+T1063 => %(phase => 'discovery', name => 'Security Software Discovery'),
+T1060 => %(phase => 'persistence', name => 'Registry Run Keys / Start Folder'),
+T1184 => %(phase => 'lateral-movement', name => 'SSH Hijacking'),
+T1076 => %(phase => 'lateral-movement', name => 'Remote Desktop Protocol'),
+T1006 => %(phase => 'defense-evasion', name => 'File System Logical Offsets'),
+T1181 => %(phase => 'defense-evasion', name => 'Extra Window Memory Injection'),
+T1072 => %(phase => 'execution', name => 'Third-party Software'),
+T1093 => %(phase => 'defense-evasion', name => 'Process Hollowing'),
+T1164 => %(phase => 'persistence', name => 'Re-opened Applications'),
+T1118 => %(phase => 'defense-evasion', name => 'InstallUtil'),
+T1197 => %(phase => 'defense-evasion', name => 'BITS Jobs'),
+T1065 => %(phase => 'command-and-control', name => 'Uncommonly Used Port'),
+T1124 => %(phase => 'discovery', name => 'System Time Discovery'),
+T1099 => %(phase => 'defense-evasion', name => 'Timestomp'),
+T1032 => %(phase => 'command-and-control', name => 'Standard Cryptographic Protocol'),
+T1043 => %(phase => 'command-and-control', name => 'Commonly Used Port'),
+T1190 => %(phase => 'initial-access', name => 'Exploit Public-Facing Application'),
+T1073 => %(phase => 'defense-evasion', name => 'DLL Side-Loading'),
+T1207 => %(phase => 'defense-evasion', name => 'DCShadow'),
+T1013 => %(phase => 'persistence', name => 'Port Monitors'),
+T1216 => %(phase => 'defense-evasion', name => 'Signed Script Proxy Execution'),
+T1127 => %(phase => 'defense-evasion', name => 'Trusted Developer Utilities'),
+T1075 => %(phase => 'lateral-movement', name => 'Pass the Hash'),
+T1104 => %(phase => 'command-and-control', name => 'Multi-Stage Channels'),
+T1079 => %(phase => 'command-and-control', name => 'Multilayer Encryption'),
+T1219 => %(phase => 'command-and-control', name => 'Remote Access Tools'),
+T1035 => %(phase => 'execution', name => 'Service Execution'),
+T1165 => %(phase => 'persistence', name => 'Startup Items'),
+T1071 => %(phase => 'command-and-control', name => 'Standard Application Layer Protocol'),
+T1050 => %(phase => 'persistence', name => 'New Service'),
+T1052 => %(phase => 'exfiltration', name => 'Exfiltration Over Physical Medium'),
+T1129 => %(phase => 'execution', name => 'Execution through Module Load'),
+T1066 => %(phase => 'defense-evasion', name => 'Indicator Removal from Tools'),
+T1193 => %(phase => 'initial-access', name => 'Spearphishing Attachment'),
+T1095 => %(phase => 'command-and-control', name => 'Standard Non-Application Layer Protocol'),
+T1110 => %(phase => 'credential-access', name => 'Brute Force'),
+T1020 => %(phase => 'exfiltration', name => 'Automated Exfiltration'),
+T1132 => %(phase => 'command-and-control', name => 'Data Encoding'),
+T1202 => %(phase => 'defense-evasion', name => 'Indirect Command Execution'),
+T1053 => %(phase => 'execution', name => 'Scheduled Task'),
+T1083 => %(phase => 'discovery', name => 'File and Directory Discovery'),
+T1205 => %(phase => 'command-and-control', name => 'Port Knocking'),
+T1212 => %(phase => 'credential-access', name => 'Exploitation for Credential Access'),
+T1195 => %(phase => 'initial-access', name => 'Supply Chain Compromise'),
+T1058 => %(phase => 'persistence', name => 'Service Registry Permissions Weakness'),
+T1088 => %(phase => 'defense-evasion', name => 'Bypass User Account Control'),
+T1192 => %(phase => 'initial-access', name => 'Spearphishing Link'),
+T1176 => %(phase => 'persistence', name => 'Browser Extensions'),
+T1137 => %(phase => 'persistence', name => 'Office Application Startup'),
+T1196 => %(phase => 'defense-evasion', name => 'Control Panel Items'),
+T1209 => %(phase => 'persistence', name => 'Time Providers'),
+T1217 => %(phase => 'discovery', name => 'Browser Bookmark Discovery'),
+T1056 => %(phase => 'collection', name => 'Input Capture'),
+T1188 => %(phase => 'command-and-control', name => 'Multi-hop Proxy'),
+T1017 => %(phase => 'lateral-movement', name => 'Application Deployment Software'),
+T1045 => %(phase => 'defense-evasion', name => 'Software Packing'),
+T1051 => %(phase => 'lateral-movement', name => 'Shared Webroot'),
+T1200 => %(phase => 'initial-access', name => 'Hardware Additions'),
+T1081 => %(phase => 'credential-access', name => 'Credentials in Files'),
+T1077 => %(phase => 'lateral-movement', name => 'Windows Admin Shares'),
+T1040 => %(phase => 'credential-access', name => 'Network Sniffing'),
+T1123 => %(phase => 'collection', name => 'Audio Capture'),
+T1103 => %(phase => 'persistence', name => 'AppInit DLLs'),
+T1153 => %(phase => 'execution', name => 'Source'),
+T1005 => %(phase => 'collection', name => 'Data from Local System'),
+T1028 => %(phase => 'execution', name => 'Windows Remote Management'),
+T1090 => %(phase => 'command-and-control', name => 'Connection Proxy'),
+T1070 => %(phase => 'defense-evasion', name => 'Indicator Removal on Host'),
+T1101 => %(phase => 'persistence', name => 'Security Support Provider'),
+T1030 => %(phase => 'exfiltration', name => 'Data Transfer Size Limits'),
+T1159 => %(phase => 'persistence', name => 'Launch Agent'),
+T1218 => %(phase => 'defense-evasion', name => 'Signed Binary Proxy Execution'),
+T1111 => %(phase => 'credential-access', name => 'Two-Factor Authentication Interception'),
+T1025 => %(phase => 'collection', name => 'Data from Removable Media'),
+T1120 => %(phase => 'discovery', name => 'Peripheral Device Discovery'),
+T1055 => %(phase => 'defense-evasion', name => 'Process Injection'),
+T1047 => %(phase => 'execution', name => 'Windows Management Instrumentation'),
+T1204 => %(phase => 'execution', name => 'User Execution'),
+T1115 => %(phase => 'collection', name => 'Clipboard Data'),
+T1154 => %(phase => 'execution', name => 'Trap'),
+T1097 => %(phase => 'lateral-movement', name => 'Pass the Ticket'),
+T1096 => %(phase => 'defense-evasion', name => 'NTFS File Attributes'),
+T1160 => %(phase => 'persistence', name => 'Launch Daemon'),
+T1107 => %(phase => 'defense-evasion', name => 'File Deletion'),
+T1203 => %(phase => 'execution', name => 'Exploitation for Client Execution'),
+T1147 => %(phase => 'defense-evasion', name => 'Hidden Users'),
+T1087 => %(phase => 'discovery', name => 'Account Discovery'),
+T1048 => %(phase => 'exfiltration', name => 'Exfiltration Over Alternative Protocol'),
+T1210 => %(phase => 'lateral-movement', name => 'Exploitation of Remote Services'),
+T1112 => %(phase => 'defense-evasion', name => 'Modify Registry'),
+T1024 => %(phase => 'command-and-control', name => 'Custom Cryptographic Protocol'),
+T1214 => %(phase => 'credential-access', name => 'Credentials in Registry'),
+T1201 => %(phase => 'discovery', name => 'Password Policy Discovery'),
+T1042 => %(phase => 'persistence', name => 'Change Default File Association'),
+T1021 => %(phase => 'lateral-movement', name => 'Remote Services'),
+T1091 => %(phase => 'lateral-movement', name => 'Replication Through Removable Media'),
+T1171 => %(phase => 'credential-access', name => 'LLMNR/NBT-NS Poisoning'),
+T1172 => %(phase => 'command-and-control', name => 'Domain Fronting'),
+T1125 => %(phase => 'collection', name => 'Video Capture'),
+T1133 => %(phase => 'persistence', name => 'External Remote Services'),
+T1211 => %(phase => 'defense-evasion', name => 'Exploitation for Defense Evasion'),
+T1179 => %(phase => 'credential-access', name => 'Hooking'),
+T1016 => %(phase => 'discovery', name => 'System Network Configuration Discovery'),
+T1142 => %(phase => 'credential-access', name => 'Keychain'),
+T1119 => %(phase => 'collection', name => 'Automated Collection'),
+T1109 => %(phase => 'defense-evasion', name => 'Component Firmware'),
+T1106 => %(phase => 'execution', name => 'Execution through API'),
+T1057 => %(phase => 'discovery', name => 'Process Discovery'),
+T1026 => %(phase => 'command-and-control', name => 'Multiband Communication'),
+T1175 => %(phase => 'lateral-movement', name => 'Distributed Component Object Model'),
+T1078 => %(phase => 'defense-evasion', name => 'Valid Accounts'),
+T1138 => %(phase => 'persistence', name => 'Application Shimming'),
+T1174 => %(phase => 'credential-access', name => 'Password Filter DLL'),
+T1033 => %(phase => 'discovery', name => 'System Owner/User Discovery'),
+T1169 => %(phase => 'privilege-escalation', name => 'Sudo'),
+T1067 => %(phase => 'persistence', name => 'Bootkit'),
+T1102 => %(phase => 'command-and-control', name => 'Web Service'),
+T1130 => %(phase => 'defense-evasion', name => 'Install Root Certificate'),
+T1168 => %(phase => 'persistence', name => 'Local Job Scheduling'),
+T1001 => %(phase => 'command-and-control', name => 'Data Obfuscation'),
+T1036 => %(phase => 'defense-evasion', name => 'Masquerading'),
+T1038 => %(phase => 'defense-evasion', name => 'DLL Search Order Hijacking'),
+T1170 => %(phase => 'defense-evasion', name => 'Mshta'),
+T1183 => %(phase => 'defense-evasion', name => 'Image File Execution Options Injection'),
+T1007 => %(phase => 'discovery', name => 'System Service Discovery'),
+T1151 => %(phase => 'defense-evasion', name => 'Space after Filename'),
+T1126 => %(phase => 'defense-evasion', name => 'Network Share Connection Removal'),
+T1003 => %(phase => 'credential-access', name => 'Credential Dumping'),
+T1145 => %(phase => 'credential-access', name => 'Private Keys'),
+T1022 => %(phase => 'exfiltration', name => 'Data Encrypted'),
+T1149 => %(phase => 'defense-evasion', name => 'LC_MAIN Hijacking'),
+T1141 => %(phase => 'credential-access', name => 'Input Prompt'),
+T1034 => %(phase => 'persistence', name => 'Path Interception'),
+T1012 => %(phase => 'discovery', name => 'Query Registry'),
+T1116 => %(phase => 'defense-evasion', name => 'Code Signing'),
+T1135 => %(phase => 'discovery', name => 'Network Share Discovery'),
+T1100 => %(phase => 'persistence', name => 'Web Shell'),
+T1191 => %(phase => 'defense-evasion', name => 'CMSTP'),
+T1121 => %(phase => 'defense-evasion', name => 'Regsvcs/Regasm'),
+T1044 => %(phase => 'persistence', name => 'File System Permissions Weakness'),
+T1113 => %(phase => 'collection', name => 'Screen Capture'),
+T1009 => %(phase => 'defense-evasion', name => 'Binary Padding'),
+T1082 => %(phase => 'discovery', name => 'System Information Discovery'),
+T1155 => %(phase => 'execution', name => 'AppleScript'),
+T1085 => %(phase => 'defense-evasion', name => 'Rundll32'),
+T1046 => %(phase => 'discovery', name => 'Network Service Scanning'),
+T1010 => %(phase => 'discovery', name => 'Application Window Discovery'),
+T1158 => %(phase => 'defense-evasion', name => 'Hidden Files and Directories'),
+T1041 => %(phase => 'exfiltration', name => 'Exfiltration Over Command and Control Channel'),
+T1185 => %(phase => 'collection', name => 'Man in the Browser'),
+T1208 => %(phase => 'credential-access', name => 'Kerberoasting'),
+T1086 => %(phase => 'execution', name => 'PowerShell'),
+T1037 => %(phase => 'lateral-movement', name => 'Logon Scripts'),
+T1059 => %(phase => 'execution', name => 'Command-Line Interface'),
+T1187 => %(phase => 'credential-access', name => 'Forced Authentication'),
+T1161 => %(phase => 'persistence', name => 'LC_LOAD_DYLIB Addition'),
+T1039 => %(phase => 'collection', name => 'Data from Network Shared Drive'),
+T1114 => %(phase => 'collection', name => 'Email Collection'),
+T1054 => %(phase => 'defense-evasion', name => 'Indicator Blocking'),
+T1108 => %(phase => 'defense-evasion', name => 'Redundant Access'),
+T1062 => %(phase => 'persistence', name => 'Hypervisor'),
+T1152 => %(phase => 'defense-evasion', name => 'Launchctl'),
+T1206 => %(phase => 'privilege-escalation', name => 'Sudo Caching'),
+T1180 => %(phase => 'persistence', name => 'Screensaver'),
+T1011 => %(phase => 'exfiltration', name => 'Exfiltration Over Other Network Medium'),
+T1166 => %(phase => 'privilege-escalation', name => 'Setuid and Setgid'),
+T1080 => %(phase => 'lateral-movement', name => 'Taint Shared Content'),
+T1064 => %(phase => 'defense-evasion', name => 'Scripting'),
+T1128 => %(phase => 'persistence', name => 'Netsh Helper DLL'),
+T1162 => %(phase => 'persistence', name => 'Login Item'),
+T1182 => %(phase => 'persistence', name => 'AppCert DLLs'),
+T1199 => %(phase => 'initial-access', name => 'Trusted Relationship'),
+T1136 => %(phase => 'persistence', name => 'Create Account'),
+T1213 => %(phase => 'collection', name => 'Data from Information Repositories'),
+T1023 => %(phase => 'persistence', name => 'Shortcut Modification'),
+T1177 => %(phase => 'execution', name => 'LSASS Driver'),
+T1098 => %(phase => 'credential-access', name => 'Account Manipulation'),
+T1156 => %(phase => 'persistence', name => '.bash_profile and .bashrc'),
+T1015 => %(phase => 'persistence', name => 'Accessibility Features'),
+T1131 => %(phase => 'persistence', name => 'Authentication Package'),
+T1008 => %(phase => 'command-and-control', name => 'Fallback Channels'),
+T1148 => %(phase => 'defense-evasion', name => 'HISTCONTROL'),
+T1144 => %(phase => 'defense-evasion', name => 'Gatekeeper Bypass'),
+T1061 => %(phase => 'execution', name => 'Graphical User Interface'),
+T1004 => %(phase => 'persistence', name => 'Winlogon Helper DLL'),
+T1157 => %(phase => 'persistence', name => 'Dylib Hijacking'),
+T1178 => %(phase => 'privilege-escalation', name => 'SID-History Injection'),
+T1018 => %(phase => 'discovery', name => 'Remote System Discovery'),
+T1019 => %(phase => 'persistence', name => 'System Firmware'),
+T1194 => %(phase => 'initial-access', name => 'Spearphishing via Service'),
+T1031 => %(phase => 'persistence', name => 'Modify Existing Service'),
+T1029 => %(phase => 'exfiltration', name => 'Scheduled Transfer'),
+);
+################################################################################################
+
+on * {
+    # Skip heartbeats
+    if ('heartbeat_*' iswm $1) {
+        return;
+    }
+    else if ($1 eq 'interfaces') {
+        return;
+    }
+    else if ($1 eq "beacons")
+    {
+        if (-istrue $log_beacons) {
+            # beacon status
+            # array(beaconid => %datahash, beaconid => %datahash)
+            $data = subarray(@_, 1);
+            # array of beacons
+            foreach $bindex => $beacon ($data) {
+                # beaconid => %datahash
+                foreach $beacon_id => $bdata ($beacon) {
+                    %entry = %(event => $1, beacon_id => $beacon_id);
+                    foreach $key => $value ($bdata) {
+                        %entry[$key] = $value;
+                    }
+                    %entry['timestamp'] = ticks();
+                    log(json_encode(%entry));
+                }
+            }
+        }
+    }
+    else if ($1 eq "beacon_input") {
+        if (-istrue $log_beacon_input) {
+            # beacon_input events
+            # [beacon_input]: @('87653', 'ztg', 'shell whoami', 1526394689394L)
+            $data = subarray(@_, 1);
+            $entry = json_encode(%(event => $1, beacon_id => $data[0], operator => $data[1], command => $data[2], timestamp => $data[3]));
+            log($entry);
+        }
+    }
+    else if ($1 eq "beacon_tasked" || $1 eq "beacon_checkin" || $1 eq "beacon_output" || $1 eq "beacon_error" || $1 eq "beacon_output_ps" || $1 eq "beacon_output_ls") {
+        if (-istrue $log_beacon_tasked || -istrue $log_beacon_checkin || -istrue $log_beacon_output || -istrue $log_beacon_error) {
+            # [beacon_tasked]: @('87653', 'Tasked beacon to run: whoami', 1526394689395L)
+            # [beacon_checkin]: @('87653', 'host called home, sent: 37 bytes', 1526394691194L)
+            # [beacon_output]: @('87653', 'received output: foo\bar', 1526394695375L)
+            $data = subarray(@_, 1);
+            $entry = json_encode(%(event => $1, beacon_id => $data[0], message => $data[1], timestamp => $data[2]));
+            log($entry);
+        }
+    }
+    else if ($1 eq "beacon_indicator") {
+        if (-istrue $log_beacon_indicator) {
+            #@('beacon_indicator', '59349', 'ztg', 'service: \\127.0.0.1 upd72cae', 1528234777704L)
+            $data = subarray(@_, 1);
+            $entry = json_encode(%(event => 'beacon_indicator', beacon_id => $data[0], operator => $data[1], message => $data[2], timestamp => $data[3]));
+            log($entry);
+        }
+    }
+    else if ($1 eq "event_beacon_initial") {
+        if (-istrue $log_event_beacon_initial) {
+            # @('event_beacon_initial', 'user123@192.168.56.1 (COMPUTER1)', 1530299679446L, 'user123@192.168.56.1 (COMPUTER1)', 1530299679446L)
+            $data = subarray(@_, 1);
+            $user = split("@", $data[0])[0];
+            $ip = split(" ", split("@", $data[0])[1])[0];
+            $host = replace(split("[(]", $data[0])[1], "[)]", "");
+            $entry = json_encode(%(event => "event_beacon_initial", hostname => $host, user => $user, ip => $ip, timestamp => $data[1]));
+            log($entry);
+        }
+    }
+    else if ($1 eq "beacon_initial" || $1 eq "beacon_initial_empty") {
+        if (-istrue $log_beacon_initial) {
+            #@('beacon_initial', '12608')
+            #@('beacon_initial_empty', '12608')
+            $data = subarray(@_, 1);
+            $entry = json_encode(%(event => $1, beacon_id => $data[0], timestamp => ticks()));
+            log($entry);
+            
+        }
+    }
+    else if ($1 eq "archives") {
+        if (-istrue $log_archives) {
+            # [archives]: @(%(data => 'shell whoami', type => 'input', bid => '87653', when => 1526394689394L))
+            # [archives]: @(%(data => 'run: whoami', type => 'task', bid => '87653', when => 1526394689395L, tactic => 'T1059'))
+            # [archives]: @(%(data => 'run: whoami', type => 'task', bid => '87653', when => 1526394689395L, tactic => 'T1003, T1055, T1093'))
+            # [archives]: @(%(data => 'host called home, sent: 37 bytes', type => 'checkin', bid => '87653', when => 1526394691194L))
+            $data = subarray(@_, 1)[0];
+            $beacon_id = $data['bid'];
+            if ($beacon_id == $null) {
+                $beacon_id = 0;
+            }
+            %entry = %(event => 'beacon_indicator', beacon_id => $beacon_id, type => $data['type'], message => $data['data'], when => $data['when'], timestamp => ticks());
+            if ("tactic" in $data) {
+                $tactics = split(", ", $data['tactic']);
+                # Create individual entries for each tactic
+                foreach $tactic ($tactics) {
+                    %entry['tactic'] = $tactic;
+                    %entry['phase'] = %attack[$tactic]["phase"];
+                    %entry['tactic_name'] = %attack[$tactic]["name"];
+                    log(json_encode(%entry));
+                }
+            }
+            else {
+                log(json_encode(%entry));
+            }
+        }
+    }
+    else if ($1 eq "beaconlog") {
+        if (-istrue $log_beaconlog) {
+            # skipping for now as the data is duplicated in the beacon_* events
+            return;
+        }
+    }
+    else if ($1 eq "web_hit") {
+        if (-istrue $log_web_hit) {
+            $data = subarray(@_, 1);
+            $entry = json_encode(%(event => 'web_hit', method => $data[0], uri => $data[1], ip_address => $data[2], useragent => $data[3], response => $data[4], response_size => $data[5], file_served => $data[6], unknown => $data[7], timestamp => $data[8]));
+            log($entry);
+        }
+    }
+    else if ($1 eq "event_newsite") {
+        $data = subarray(@_, 1);
+        log(json_encode(%(event => "event_newsite", operator => $data[0], message => $data[1], timestamp => $data[2])));
+    }
+    else if ($1 eq "weblog" || $1 eq "c2info" || $1 eq "sessions" || $1 eq "targets") {
+        # Skipping as we're already getting this data with packetbeat
+        return;
+    }
+    else {
+        println($1 . " not logged");
+        notLogged(@_);
+    }
+}
+
+sub log {
+    $logfile = $logdir . "/teamserver-" . $role . "-" . formatDate("yyyy.MM.dd") . '.json';
+    if (-canwrite $logfile) {
+        $h = openf(">>" . $logfile);
+        println($h, $1);
+        closef($h);
+    }
+    else {
+        createNewFile($logfile);
+        log($@_)
+    }
+}
+
+# Accepts a hash and returns a json encoded string
+sub json_encode {
+    %data = $1;
+    $json = "{";
+    foreach $key (keys(%data)) {
+        $json = $json . '"' . $key . '":"' . escape(%data[$key]) . '",';
+    }
+    $json = $json . '"role":"' . $role . '",';
+    $json = $json . "}";
+    $json = replace($json, ",}$", "}");
+    return $json;
+}
+
+sub notLogged {
+    println($1);
+    if (-canwrite $notlogged) {
+        $h = openf(">>" . $notlogged);
+        println($h, $1);
+        closef($h);
+    }
+    else {
+        println("Unable to write to log file " . $notlogged);
+    }
+}
+
+# escape special chars for json output
+sub escape {
+    $escaped = replace($1, '[\\\\]', '\\\\\\\\');
+    $escaped = replace($escaped, "\n", "\\\\n");
+    $escaped = replace($escaped, "\r", "\\\\r");
+    $escaped = replace($escaped, "\t", "\\\\t");
+    return $escaped;
+}

@@ -1,0 +1,85 @@
+- key: csteamserver
+  type: group
+  title: Cobalt Strike Teamserver
+  description: >
+    Contains event logs from the Cobalt Strike Teamserver
+  fields:
+    - name: event
+      type: text
+      required: true
+      description: >
+        Event type emitted by the teamserver
+    - name: session
+      type: text
+    - name: lastf
+      type: text
+    - name: last
+      type: integer
+    - name: pbid
+      type: text
+    - name: computer
+      type: text
+    - name: port
+      type: integer
+    - name: pid
+      type: integer
+    - name: beacon_id
+      type: integer
+    - name: alive
+      type: boolean
+    - name: barch
+      type: keyword
+    - name: note
+      type: text
+    - name: internal
+      type: text
+    - name: external
+      type: text
+    - name: id
+      type: integer
+    - name: ver
+      type: float
+    - name: is64
+      type: integer
+    - name: os
+      type: text
+    - name: event
+      type: keyword
+    - name: user
+      type: keyword
+    - name: type
+      type: text
+    - name: data
+      type: text
+    - name: when
+      type: date
+    - name: tactic
+      type: keyword
+    - name: phase
+      type: keyword
+    - name: tactic_name
+      type: keyword
+    - name: operator
+      type: keyword
+    - name: timestamp
+      type: date
+    - name: command
+      type: text
+    - name: message
+      type: text
+    - name: uri
+      type: text
+    - name: method
+      type: text
+    - name: ip_address
+      type: ip
+    - name: useragent
+      type: text
+    - name: response
+      type: text
+    - name: response_size
+      type: integer
+    - name: file_served
+      type: text
+    - name: role
+      type: keyword
