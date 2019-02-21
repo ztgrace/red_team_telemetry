@@ -1,0 +1,55 @@
+- key: empire
+  type: group
+  title: Empire Project
+  description: >
+    Contains event logs from the Empire Project Server
+  fields:
+    - name: agent
+      type: keyword
+    - name: empire.message
+      type: text
+    - name: empire.command
+      type: keyword
+    - name: empire.print
+      type: text
+    - name: empire.module
+      type: keyword
+    - name: implant.agent
+      type: keyword
+    - name: implant.extip
+      type: keyword
+    - name: implant.hostname
+      type: keyword
+    - name: implant.internalip
+      type: ip
+    - name: implant.lang_version
+      type: text
+    - name: implant.language
+      type: keyword
+    - name: implant.os
+      type: text
+    - name: implant.pid
+      type: integer
+    - name: implant.process
+      type: text
+    - name: implant.target
+      type: keyword
+    - name: implant.team
+      type: keyword
+    - name: implant.type
+      name: keyword
+    - name: implant.username
+      type: keyword
+    - name: listener
+      type: keyword
+    - name: listener_type
+      type: keyword
+    - name: json
+      type: text
+    - name: "@timestamp"
+      type: date
+      required: true
+      format: date
+      example: August 26th 2016, 12:35:53.332
+      description: >
+        The timestamp when the event log record was generated.

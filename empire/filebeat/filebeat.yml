@@ -1,0 +1,15 @@
+filebeat.prospectors:
+- input_type: log
+  paths:
+    - "/opt/empire/empire.debug"
+    - "/opt/Empire/empire.debug"
+
+output.logstash:
+  hosts: ["logs.mycompany.com:5044"]
+  ssl.certificate_authorities: ["/etc/ca.crt"]
+  ssl.certificate: "/etc/client.crt"
+  ssl.key: "/etc/client.key"
+
+setup.template:
+  fields: fields.yml
+  overwrite: true
